@@ -35,7 +35,7 @@ export interface AssetGroup {
 
 export interface Options {
   client?: string; demande?: string; langueSnippets?: "fr" | "en"; inclureAdType?: boolean;
-  fichiersSepares?: boolean; aujourdhui?: string;
+  fichiersSepares?: boolean; aujourdhui?: string; siteOfficiel?: string;
 }
 
 export interface Plan {

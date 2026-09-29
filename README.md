@@ -48,13 +48,21 @@ Tokens extraits du CSS compile de MediaBox v2.3.0.4 : palette `primary` (violet 
 
 ## IA (Gemini)
 
-Deux appels : 1) recherche web avec grounding Google Search, en prose, avec sources ; 2) mise en forme JSON stricte au format du plan. Le resultat passe ensuite par le meme moteur de validation que n'importe quel plan saisi a la main. Le grounding est facture par Google a la requete de recherche (14 USD / 1 000 au moment de l'ecriture) : la case « Recherche web » permet de le desactiver.
+Entrees : site officiel du client (obligatoire), mandat, langue, recherche web oui/non.
+
+Deux appels : 1) lecture du site officiel avec l'outil URL context, et recherche web (grounding Google Search) limitee au vocabulaire de recherche, en prose, avec sources ; 2) mise en forme JSON stricte au format du plan (temperature 0,4). Regles du prompt : le site officiel est la seule source de verite sur l'annonceur, aucune offre ou prix invente, toutes les URL finales sur le domaine du site. Apres coup, la route remplace toute URL hors domaine par la page d'accueil et le signale a l'ecran. Le plan passe ensuite par le meme moteur de validation que n'importe quel plan saisi a la main.
+
+Le grounding est facture par Google a la requete de recherche (14 USD / 1 000 au moment de l'ecriture) : la case « Recherche web » permet de le desactiver. Prompts dans `lib/deck2editor/ai.ts`, a ajuster sur des briefs reels une fois la cle disponible.
 
 ## Non porte depuis la version Apps Script (a faire en v8.1)
 
 - Deck client PDF / HTML et deck Excel (ExcelJS).
 - Import d'un plan Excel et import d'un export Google Ads Editor (chemin inverse).
 - Bascule EN de l'interface (le bouton est present, le dictionnaire n'est pas encore branche).
+
+## Tests
+
+`npm test` : 16 tests (interface avec React Testing Library, moteur, normalisation, logique IA et route IA avec Gemini simule).
 
 ## Verifications a faire avant deploiement equipe
 

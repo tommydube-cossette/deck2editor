@@ -109,3 +109,27 @@ describe("Moteur et normalisation", () => {
     expect(p.motsCles[0].correspondance).toBe("Phrase");
   });
 });
+
+describe("Onglet IA", () => {
+  it("exige le site officiel, puis charge le plan renvoye par la route", async () => {
+    const user = userEvent.setup();
+    const planIA = { campagnes: [{ nom: "IA | Test | Search | FR", type: "Search", budgetQuotidien: "10", strategieEncheres: "Maximize clicks", politiqueUE: "Non", localisations: [{ id: "20123", nom: "Quebec" }] }], groupes: [{ campagne: "IA | Test | Search | FR", nom: "g_ia" }], rsas: [{ campagne: "IA | Test | Search | FR", groupe: "g_ia", titres: ["T1", "T2", "T3"], descriptions: ["D1", "D2"], urlFinale: "https://www.ex.com/" }] };
+    const fetchMock = vi.fn(async () => ({ ok: true, json: async () => ({ plan: planIA, notes: "notes", sources: [], corrections: ["Lien annexe « x » : https://a.b remplacée par https://www.ex.com/"], modele: "test" }) }));
+    vi.stubGlobal("fetch", fetchMock);
+    monter();
+    fireEvent.click(screen.getByRole("button", { name: /^IA/ }));
+    await user.type(screen.getByLabelText("Mandat"), "Mandat test");
+    clic("Générer le brouillon");
+    expect(fetchMock).not.toHaveBeenCalled();
+    await user.type(screen.getByLabelText(/Site officiel du client/), "www.ex.com");
+    expect(screen.getByText(/domaine retenu : ex.com/)).toBeInTheDocument();
+    clic("Générer le brouillon");
+    expect(await screen.findByDisplayValue("IA | Test | Search | FR")).toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const body = JSON.parse((fetchMock.mock.calls[0] as unknown as [string, { body: string }])[1].body);
+    expect(body.siteOfficiel).toBe("www.ex.com");
+    clic("Valider et générer");
+    expect(await screen.findByText("Prêt pour l’import")).toBeInTheDocument();
+    vi.unstubAllGlobals();
+  });
+});
