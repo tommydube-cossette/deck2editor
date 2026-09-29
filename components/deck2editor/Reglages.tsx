@@ -17,7 +17,11 @@ export default function Reglages() {
   const [plans, setPlans] = useState<DeckPlanResume[]>([]);
   const [busy, setBusy] = useState(false);
 
-  const rafraichir = async () => { if (user && configure) setPlans(await listerPlans(user.uid)); };
+  const rafraichir = async () => {
+    if (!user || !configure) return;
+    try { setPlans(await listerPlans(user.uid)); }
+    catch (e) { toast("Lecture des plans impossible : " + (e as Error).message); }
+  };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { rafraichir(); }, [user?.uid]);
 

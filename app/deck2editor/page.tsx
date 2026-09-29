@@ -11,8 +11,9 @@ import Extensions from "@/components/deck2editor/Extensions";
 import PMax from "@/components/deck2editor/PMax";
 import ImportDeck from "@/components/deck2editor/ImportDeck";
 import IA from "@/components/deck2editor/IA";
+import ImportExport from "@/components/deck2editor/ImportExport";
 import ValidationRail from "@/components/deck2editor/ValidationRail";
-import { Settings, LayoutDashboard, FileText, Tag, Link2, Boxes, ClipboardPaste, Sparkles } from "lucide-react";
+import { Settings, LayoutDashboard, FileText, Tag, Link2, Boxes, ClipboardPaste, Sparkles, ArrowLeftRight } from "lucide-react";
 
 const ONGLETS: { id: Onglet; label: string; sous: string; Icon: typeof Settings }[] = [
   { id: "reglages", label: "Réglages", sous: "Contexte du plan, options d’export, plans sauvegardés.", Icon: Settings },
@@ -22,6 +23,7 @@ const ONGLETS: { id: Onglet; label: string; sous: string; Icon: typeof Settings 
   { id: "extensions", label: "Extensions", sous: "Liens annexes, accroches, extraits de site.", Icon: Link2 },
   { id: "pmax", label: "Performance Max", sous: "Titres, titres longs, descriptions, nom de l’entreprise.", Icon: Boxes },
   { id: "import", label: "Import deck", sous: "Collez un onglet Excel, l’outil en extrait le contenu.", Icon: ClipboardPaste },
+  { id: "echanges", label: "Excel / Editor / Deck", sous: "Modèle Excel, import Excel, export Google Ads Editor, deck client PDF, HTML, Excel.", Icon: ArrowLeftRight },
   { id: "ia", label: "IA", sous: "Brouillon complet généré par Gemini, à valider.", Icon: Sparkles },
 ];
 
@@ -29,7 +31,7 @@ function Contenu() {
   const { onglet, setOnglet, plan, resultat } = usePlan();
   const compte: Record<Onglet, number | ""> = {
     reglages: "", campagnes: plan.campagnes.length, groupes: plan.groupes.length, motscles: plan.motsCles.length + plan.negatifs.length,
-    extensions: plan.sitelinks.length + plan.callouts.length + plan.snippets.length, pmax: plan.assetGroups.length, import: "", ia: "",
+    extensions: plan.sitelinks.length + plan.callouts.length + plan.snippets.length, pmax: plan.assetGroups.length, import: "", echanges: "", ia: "",
   };
   const erreurs: Partial<Record<Onglet, number>> = {};
   resultat?.rapport.erreurs.forEach((e) => {
@@ -59,6 +61,7 @@ function Contenu() {
           {onglet === "extensions" && <Extensions />}
           {onglet === "pmax" && <PMax />}
           {onglet === "import" && <ImportDeck />}
+          {onglet === "echanges" && <ImportExport />}
           {onglet === "ia" && <IA />}
         </div>
       </div>

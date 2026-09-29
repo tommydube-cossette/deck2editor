@@ -1,4 +1,4 @@
-import { collection, doc, getDoc, getDocs, orderBy, query, setDoc, where, deleteDoc } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, query, setDoc, where, deleteDoc } from "firebase/firestore";
 import { fbDb } from "@/lib/firebase";
 import type { DeckPlanDoc, Plan } from "./types";
 
@@ -7,12 +7,13 @@ const COL = "deckPlans";
 export interface DeckPlanResume { id: string; titre: string; clientNom: string; demande: string; statut: string; updatedAt: number; }
 
 export async function listerPlans(ownerUid: string): Promise<DeckPlanResume[]> {
-  const q = query(collection(fbDb(), COL), where("ownerUid", "==", ownerUid), orderBy("updatedAt", "desc"));
+  // Filtre seul, tri cote client : evite un index compose a creer dans chaque projet Firebase.
+  const q = query(collection(fbDb(), COL), where("ownerUid", "==", ownerUid));
   const snap = await getDocs(q);
   return snap.docs.map((d) => {
     const x = d.data() as DeckPlanDoc;
     return { id: d.id, titre: x.titre, clientNom: x.clientNom, demande: x.demande, statut: x.statut, updatedAt: x.updatedAt };
-  });
+  }).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
 }
 
 export async function chargerPlan(id: string): Promise<DeckPlanDoc | null> {

@@ -5,7 +5,7 @@ import { planVide, campagneVide } from "@/lib/deck2editor/plan";
 import { references } from "@/lib/deck2editor/references";
 import GAE from "@/lib/deck2editor/gae";
 
-export type Onglet = "reglages" | "campagnes" | "groupes" | "motscles" | "extensions" | "pmax" | "import" | "ia";
+export type Onglet = "reglages" | "campagnes" | "groupes" | "motscles" | "extensions" | "pmax" | "import" | "echanges" | "ia";
 
 interface State {
   plan: Plan;

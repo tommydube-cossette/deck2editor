@@ -30,6 +30,8 @@ Firestore : collection `deckPlans`, un document par plan (client, demande, propr
 
 ```
 app/deck2editor/page.tsx              page principale (onglets + rail de validation)
+lib/deck2editor/portage.ts            import export Editor, Excel, deck HTML (code Apps Script porte tel quel)
+lib/deck2editor/exports.ts            API des echanges, chargement differe
 app/api/deck2editor/generate/route.ts validation + CSV cote serveur (le moteur tourne aussi cote client)
 app/api/deck2editor/ai/route.ts       Gemini : recherche web (grounding) puis plan JSON
 components/shell/                     coquille MediaBox (barre laterale 210 px, barre superieure)
@@ -54,15 +56,20 @@ Deux appels : 1) lecture du site officiel avec l'outil URL context, et recherche
 
 Le grounding est facture par Google a la requete de recherche (14 USD / 1 000 au moment de l'ecriture) : la case « Recherche web » permet de le desactiver. Prompts dans `lib/deck2editor/ai.ts`, a ajuster sur des briefs reels une fois la cle disponible.
 
+## Echanges (onglet « Excel / Editor / Deck »)
+
+Portes tels quels depuis la version Apps Script (`lib/deck2editor/portage.ts`, charge a la demande avec ExcelJS) :
+- Modele Excel a remplir, deck client Excel, import d'un plan Excel (avec ou sans generation immediate du fichier 00).
+- Import d'un export Google Ads Editor (CSV / TSV, UTF-8 ou UTF-16) : chemin inverse pour documenter un compte existant.
+- Deck client HTML (telechargement) et PDF (impression navigateur, « Enregistrer au format PDF »).
+
 ## Non porte depuis la version Apps Script (a faire en v8.1)
 
-- Deck client PDF / HTML et deck Excel (ExcelJS).
-- Import d'un plan Excel et import d'un export Google Ads Editor (chemin inverse).
-- Bascule EN de l'interface (le bouton est present, le dictionnaire n'est pas encore branche).
+- Bascule EN de l'interface (le bouton est present, le dictionnaire n'est pas encore branche). Les exports Excel et le deck client existent deja en EN via le parametre `langue`.
 
 ## Tests
 
-`npm test` : 16 tests (interface avec React Testing Library, moteur, normalisation, logique IA et route IA avec Gemini simule).
+`npm test` : 22 tests (interface avec React Testing Library, moteur, normalisation, logique IA et route IA avec Gemini simule, aller-retour Excel, deck HTML, import d'un export Editor).
 
 ## Verifications a faire avant deploiement equipe
 
