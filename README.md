@@ -30,7 +30,7 @@ Firestore : collection `deckPlans`, un document par plan (client, demande, propr
 
 1. Accueil : explication en trois etapes et quatre facons de commencer (brief IA, a la main, fichier, plan sauvegarde), liste des plans Firestore.
 2. Editeur : sequence numerotee de 7 etapes (Contexte, Campagnes, Groupes et annonces, Mots-cles, Extensions, Performance Max, Generation), navigation Precedent / Suivant, rail de validation a droite.
-3. Les sources (Brouillon IA, Importer : deck Excel, export Editor, onglet colle) sont des panneaux lateraux ouverts depuis l'en-tete de l'editeur, pas des etapes.
+3. La source se choisit a l'accueil seulement (brief IA, fichier Excel ou export Editor, a la main) et s'ouvre en panneau lateral ; l'editeur ne propose plus de changer de source en cours de route. Le seul raccourci est « Coller un deck » dans la carte de chaque groupe d'annonces (onglet Excel copie-colle).
 
 ## Structure
 

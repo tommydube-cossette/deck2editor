@@ -6,7 +6,9 @@ import { Input, Select, Textarea } from "@/components/ui/Field";
 import Button from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Toast";
 import { groupeVide, rsaVide, typeCampagneDe } from "@/lib/deck2editor/plan";
-import { X } from "lucide-react";
+import { X, ClipboardPaste } from "lucide-react";
+import SlideOver from "@/components/ui/SlideOver";
+import ImportDeck from "./ImportDeck";
 
 export default function Groupes() {
   const { plan, update } = usePlan();
@@ -22,6 +24,7 @@ export default function Groupes() {
 function GroupeCard({ i }: { i: number }) {
   const { plan, update } = usePlan();
   const g = plan.groupes[i], r = plan.rsas[i];
+  const [coller, setColler] = useState(false);
   const setCamp = (v: string) => update((p) => {
     const old = p.groupes[i].campagne, nomG = p.groupes[i].nom;
     p.groupes[i].campagne = v; p.rsas[i].campagne = v;
@@ -42,7 +45,12 @@ function GroupeCard({ i }: { i: number }) {
 
   return (
     <Card>
-      <CardHeader title={g.nom || `Groupe ${i + 1}`} subtitle={`${r.titres.length} titres · ${r.descriptions.length} desc.`} right={<Button size="sm" variant="danger" onClick={supprimer}>Supprimer ce groupe</Button>} />
+      <CardHeader title={g.nom || `Groupe ${i + 1}`} subtitle={`${r.titres.length} titres · ${r.descriptions.length} desc.`}
+        right={<div className="flex gap-2"><Button size="sm" disabled={!g.campagne || !g.nom} title={!g.campagne || !g.nom ? "Choisissez la campagne et nommez le groupe d’abord" : ""} onClick={() => setColler(true)}><ClipboardPaste />Coller un deck</Button><Button size="sm" variant="danger" onClick={supprimer}>Supprimer</Button></div>} />
+      <SlideOver open={coller} onClose={() => setColler(false)} title={`Coller un deck : ${g.nom}`}>
+        <p className="mb-4 text-sm text-gray-600">Sélectionnez les cellules de l’onglet du deck dans Excel ou Sheets (titres, descriptions, chemins, URL, mots-clés, négatifs, liens annexes, accroches, extraits), copiez, collez ci-dessous. Les titres et descriptions de ce groupe seront remplacés ; le reste s’ajoute.</p>
+        <ImportDeck campagneFixe={g.campagne} groupeFixe={g.nom} onFin={() => setColler(false)} />
+      </SlideOver>
       <CardBody>
         <div className="grid gap-4 md:grid-cols-4">
           <div>

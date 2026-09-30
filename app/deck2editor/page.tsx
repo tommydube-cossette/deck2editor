@@ -19,10 +19,11 @@ import IA from "@/components/deck2editor/IA";
 import ValidationRail from "@/components/deck2editor/ValidationRail";
 import { useAuth } from "@/lib/auth";
 import { sauvegarderPlan, titreParDefaut } from "@/lib/deck2editor/firestore";
-import { ArrowLeft, Sparkles, Upload, Save } from "lucide-react";
+import { ArrowLeft, Save } from "lucide-react";
 
 /* Sequence unique, numerotee : 1 Contexte > 2 Campagnes > 3 Groupes et annonces > 4 Mots-cles > 5 Extensions > 6 Performance Max > 7 Generation.
-   Les sources (IA, import) sont des panneaux lateraux, pas des etapes. */
+   La source (IA, fichier, a la main) se choisit a l'accueil ; les panneaux IA et Importer ne s'ouvrent que depuis l'accueil.
+   En cours de route, seul « Coller un deck » existe, dans la carte de chaque groupe d'annonces. */
 const ETAPES: { id: Onglet; label: string; sous: string }[] = [
   { id: "contexte", label: "Contexte", sous: "Client, demande, site officiel, options d’export." },
   { id: "campagnes", label: "Campagnes", sous: "Budget, enchères, diffusion, ciblage, AI Max." },
@@ -58,8 +59,6 @@ function Editeur() {
           <button type="button" onClick={() => setVue("accueil")} className="flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-900"><ArrowLeft className="h-4 w-4" />Accueil</button>
           <div className="mx-1 h-5 w-px bg-gray-200" />
           <div className="min-w-0 flex-1 truncate text-sm font-medium text-gray-900">{titreParDefaut(plan)}{planId ? "" : <span className="ml-2 text-xs font-normal text-gray-500">(non sauvegardé)</span>}</div>
-          <Button size="sm" onClick={() => setPanneau("importer")}><Upload />Importer</Button>
-          <Button size="sm" onClick={() => setPanneau("ia")}><Sparkles />Brouillon IA</Button>
           <Button size="sm" variant="primary" disabled={!configure || !user || busy} onClick={sauvegarder} title={configure ? "" : "Firebase non configuré"}><Save />Sauvegarder</Button>
         </div>
         <div className="border-b border-gray-200 bg-white px-6">

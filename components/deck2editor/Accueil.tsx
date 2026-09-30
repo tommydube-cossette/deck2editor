@@ -58,8 +58,8 @@ export default function Accueil() {
         <div className="mt-2 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           {[
             { Icon: Sparkles, t: "À partir d’un brief (IA)", d: "Décrivez le mandat et donnez le site du client. Gemini propose un plan complet que vous corrigez.", a: () => ouvrirAvecPanneau("ia"), primaire: true },
-            { Icon: PenLine, t: "À la main", d: "Saisissez campagnes, groupes, annonces, mots-clés et extensions dans l’éditeur.", a: nouveau },
-            { Icon: Upload, t: "À partir d’un fichier", d: "Deck Excel (modèle de l’outil), export Google Ads Editor, ou onglet Excel collé.", a: () => ouvrirAvecPanneau("importer") },
+            { Icon: PenLine, t: "À la main", d: "Saisissez campagnes, groupes, annonces, mots-clés et extensions. Un onglet de deck peut être collé dans chaque groupe.", a: nouveau },
+            { Icon: Upload, t: "À partir d’un fichier", d: "Deck Excel (modèle de l’outil) ou export d’un compte Google Ads Editor.", a: () => ouvrirAvecPanneau("importer") },
             { Icon: FolderOpen, t: "Reprendre un plan", d: plans.length ? `${plans.length} plan(s) sauvegardé(s) ci-dessous.` : configure ? "Aucun plan sauvegardé pour l’instant." : "Sauvegarde désactivée (Firebase non configuré).", a: () => document.getElementById("plans")?.scrollIntoView({ behavior: "smooth" }) },
           ].map(({ Icon, t, d, a, primaire }) => (
             <button key={t} type="button" onClick={a} className={`group rounded-surface border bg-white p-4 text-left transition-colors hover:border-primary ${primaire ? "border-primary-300" : "border-gray-300"}`}>

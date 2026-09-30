@@ -1,16 +1,15 @@
 "use client";
 import { useRef, useState } from "react";
 import { usePlan } from "./PlanContext";
-import ImportDeck from "./ImportDeck";
 import Button from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Toast";
 import { telechargerExcel, importerExcel, importerExportEditor } from "@/lib/deck2editor/exports";
 
-type Source = "excel" | "editor" | "colle";
+type Source = "excel" | "editor";
 
 /* Panneau « Importer » : trois sources, un plan a l'arrivee. */
 export default function Importer() {
-  const { plan, ouvrirPlan, generer, setOnglet } = usePlan();
+  const { plan, ouvrirPlan, generer } = usePlan();
   const toast = useToast();
   const [source, setSource] = useState<Source>("excel");
   const [resume, setResume] = useState("");
@@ -44,7 +43,7 @@ export default function Importer() {
 
   return (
     <div>
-      <div className="mb-5 flex gap-6 border-b border-gray-200"><Onglet id="excel" label="Deck Excel" /><Onglet id="editor" label="Export Google Ads Editor" /><Onglet id="colle" label="Onglet Excel collé" /></div>
+      <div className="mb-5 flex gap-6 border-b border-gray-200"><Onglet id="excel" label="Deck Excel" /><Onglet id="editor" label="Export Google Ads Editor" /></div>
 
       {source === "excel" && (
         <div className="space-y-4">
@@ -63,13 +62,6 @@ export default function Importer() {
           <Button variant="primary" onClick={() => csv.current?.click()}>Choisir un export Editor</Button>
           <input ref={csv} type="file" accept=".csv,.tsv,.txt" className="hidden" onChange={(e) => { importEditor(e.target.files?.[0]); e.target.value = ""; }} />
           {resume && <div className="[&_.state]:rounded-surface [&_.state]:border [&_.state]:border-green-200 [&_.state]:bg-green-50 [&_.state]:p-3 [&_.state]:text-sm [&_.big]:font-semibold [&_.big]:text-green-800 [&_p]:mt-1 [&_p]:text-gray-700" dangerouslySetInnerHTML={{ __html: resume }} />}
-        </div>
-      )}
-      {source === "colle" && (
-        <div className="space-y-4">
-          <p className="text-sm text-gray-600">Pour un groupe d’annonces à la fois : sélectionnez les cellules du deck dans Excel ou Sheets, copiez, collez ici, puis choisissez le groupe de destination. Créez d’abord la campagne et le groupe dans l’éditeur si besoin.</p>
-          {plan.groupes.length === 0 && <Button size="sm" onClick={() => setOnglet("groupes")}>Aller créer un groupe</Button>}
-          <ImportDeck />
         </div>
       )}
     </div>

@@ -28,6 +28,8 @@ describe("Accueil", () => {
     clic(/À la main/);
     expect(screen.getByText("1. Contexte", { selector: "h1" })).toBeInTheDocument();
     expect(screen.getByText("Valider et générer")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Brouillon IA/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^Importer$/ })).not.toBeInTheDocument();
     clic(/^Accueil$/);
     expect(screen.getByText("Décrire ou importer")).toBeInTheDocument();
   });
@@ -90,21 +92,20 @@ describe("Editeur", () => {
     expect(screen.getByText("Checklist après import")).toBeInTheDocument();
   });
 
-  it("import deck colle via le panneau Importer", async () => {
+  it("import deck colle depuis la carte du groupe", async () => {
     const user = userEvent.setup();
     monter(); clic(/À la main/); etape(/^2/);
     await user.type(screen.getByPlaceholderText("Client | Offre | Search | FR"), "C1");
     etape(/^3/); clic("+ Ajouter un groupe d’annonces");
     fireEvent.change(screen.getByLabelText(/^Campagne/), { target: { value: "C1" } });
     await user.type(screen.getByPlaceholderText("nom_du_groupe"), "g1");
-    fireEvent.click(screen.getByRole("button", { name: /^Importer$/ }));
-    fireEvent.click(await screen.findByRole("button", { name: "Onglet Excel collé" }));
+    clic("Coller un deck");
+    expect(await screen.findByRole("dialog")).toBeInTheDocument();
     const deck = "Headline 1\tNouveau titre A\nHeadline 2\tNouveau titre B\nDescription 1\tDesc A.\nFinal URL\thttps://www.ex.com/x\nKeywords\tType\nkw alpha\tPhrase";
     fireEvent.change(screen.getByLabelText("Contenu collé"), { target: { value: deck } });
     clic("Analyser");
     expect(await screen.findByText("Deck analysé")).toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText("Campagne de destination"), { target: { value: "C1" } });
-    fireEvent.change(screen.getByLabelText("Groupe de destination"), { target: { value: "g1" } });
+    expect(screen.queryByLabelText("Campagne de destination")).not.toBeInTheDocument();
     clic("Appliquer");
     expect(await screen.findByDisplayValue("Nouveau titre B")).toBeInTheDocument();
     expect(screen.getByDisplayValue("https://www.ex.com/x")).toBeInTheDocument();

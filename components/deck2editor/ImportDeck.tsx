@@ -16,10 +16,10 @@ interface Parse {
 
 /* Import d'un deck colle (onglet Excel). Reserve aux campagnes Search : un deck
    Performance Max se saisit dans l'onglet Performance Max (Coller en lot). */
-export default function ImportDeck() {
+export default function ImportDeck({ campagneFixe, groupeFixe, onFin }: { campagneFixe?: string; groupeFixe?: string; onFin?: () => void } = {}) {
   const { plan, update, setOnglet, setPanneau } = usePlan();
   const toast = useToast();
-  const [txt, setTxt] = useState(""); const [camp, setCamp] = useState(""); const [grp, setGrp] = useState("");
+  const [txt, setTxt] = useState(""); const [camp, setCamp] = useState(campagneFixe || ""); const [grp, setGrp] = useState(groupeFixe || "");
   const [parse, setParse] = useState<Parse | null>(null);
 
   const analyser = () => { setParse(GAE.parserDeck(txt) as Parse); };
@@ -40,17 +40,17 @@ export default function ImportDeck() {
       r.snippets.forEach((x) => p.snippets.push({ campagne: camp, entete: x.entete, valeurs: x.valeurs || [] }));
     });
     if (r.titresLongs.length || r.descriptionsCourtes.length) toast("Titres longs ignorés : la campagne de destination n’est pas de type Performance Max.");
-    setOnglet("groupes"); setPanneau(null); toast(`Deck appliqué au groupe « ${grp} ».`);
+    setOnglet("groupes"); setPanneau(null); onFin?.(); toast(`Deck appliqué au groupe « ${grp} ».`);
   };
 
   return (
     <div>
       <div>
           <Textarea label="Contenu collé" className="min-h-[200px]" value={txt} onChange={(e) => setTxt(e.target.value)} />
-          <div className="mt-4 grid gap-4 md:grid-cols-2">
+          {!groupeFixe && <div className="mt-4 grid gap-4 md:grid-cols-2">
             <Select label="Campagne de destination" options={optionsCampagne(plan, "std")} value={camp} onChange={(e) => { setCamp(e.target.value); setGrp(""); }} />
             <Select label="Groupe de destination" options={optionsGroupe(plan, camp, false)} value={grp} onChange={(e) => setGrp(e.target.value)} />
-          </div>
+          </div>}
           <div className="mt-4 flex gap-2">
             <Button onClick={analyser}>Analyser</Button>
             <Button variant="primary" onClick={appliquer}>Appliquer</Button>
