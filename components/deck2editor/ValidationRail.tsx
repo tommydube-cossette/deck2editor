@@ -12,7 +12,7 @@ const BLOC2ONGLET: Record<string, Onglet> = {
 const LIBELLES: [string, string][] = [["campagnes", "Campagnes"], ["localisations", "Localisations"], ["groupes", "Groupes"], ["motsCles", "Mots-clés"], ["negatifs", "Négatifs"], ["rsa", "Annonces"], ["sitelinks", "Liens"], ["callouts", "Accroches"], ["snippets", "Extraits"], ["assetGroups", "Assets PMax"]];
 
 export default function ValidationRail() {
-  const { resultat, generer, setOnglet } = usePlan();
+  const { resultat, generer, setOnglet, onglet } = usePlan();
   const toast = useToast();
   const r = resultat;
 
@@ -54,7 +54,7 @@ export default function ValidationRail() {
             </>
           )}
 
-          <Button className="mt-5 w-full" onClick={() => setOnglet("generation")}>Voir les fichiers et le deck client</Button>
+          {onglet !== "generation" && <Button className="mt-5 w-full" onClick={() => setOnglet("generation")}>Voir les fichiers et le deck client</Button>}
         </>
       )}
     </aside>

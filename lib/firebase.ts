@@ -1,6 +1,6 @@
 import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, type Auth } from "firebase/auth";
-import { getFirestore, type Firestore } from "firebase/firestore";
+import { initializeFirestore, type Firestore } from "firebase/firestore";
 
 /* Meme montage que MediaBox : SDK Firebase cote client, Auth Google, Firestore direct.
    Initialisation paresseuse : sans .env.local, l'outil tourne en mode local sans sauvegarde
@@ -27,7 +27,7 @@ function ensure() {
   return app;
 }
 export function fbAuth(): Auth { if (!authInst) authInst = getAuth(ensure()); return authInst; }
-export function fbDb(): Firestore { if (!dbInst) dbInst = getFirestore(ensure()); return dbInst; }
+export function fbDb(): Firestore { if (!dbInst) dbInst = initializeFirestore(ensure(), { experimentalAutoDetectLongPolling: true }); return dbInst; }
 export function fbGoogle(): GoogleAuthProvider {
   if (!provider) { provider = new GoogleAuthProvider(); provider.setCustomParameters({ prompt: "select_account" }); }
   return provider;
