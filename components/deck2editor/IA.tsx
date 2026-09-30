@@ -1,7 +1,6 @@
 "use client";
 import { useState } from "react";
 import { usePlan } from "./PlanContext";
-import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { Input, Textarea, Check, Chips } from "@/components/ui/Field";
 import Button from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Toast";
@@ -11,7 +10,7 @@ import { domaineDe } from "@/lib/deck2editor/ai";
 /* Brouillon de plan par Gemini : lecture du site officiel + recherche web, puis JSON,
    puis validation par le moteur. L'IA propose, l'outil valide, l'humain corrige. */
 export default function IA() {
-  const { plan, setPlan, setOnglet, setPlanId } = usePlan();
+  const { plan, ouvrirPlan } = usePlan();
   const toast = useToast();
   const [brief, setBrief] = useState(""); const [site, setSite] = useState(plan.options.siteOfficiel || "");
   const [langue, setLangue] = useState<"fr" | "en">("fr"); const [web, setWeb] = useState(true);
@@ -21,28 +20,28 @@ export default function IA() {
 
   const lancer = async () => {
     if (!brief.trim()) return toast("Décrivez le mandat.");
-    if (!domaine) return toast("Indiquez le site officiel du client (ex. https://www.sepaq.com).");
+    if (!domaine) return toast("Indiquez le site officiel du client (ex. https://www.exemple.com).");
     if (plan.campagnes.some((c) => c.nom) && !confirm("Le plan généré remplacera le plan courant. Continuer ?")) return;
     setBusy(true); setErreur(""); setNotes(""); setSources([]); setCorrections([]);
     try {
       const r = await fetch("/api/deck2editor/ai", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ brief, siteOfficiel: site, langue, rechercheWeb: web }) });
       const j = await r.json();
       if (!r.ok) { setErreur(j.erreur || "Erreur inconnue."); setBusy(false); return; }
-      const p = normaliserPlan(j.plan); p.options = { ...p.options, siteOfficiel: site };
-      setPlan(p); setPlanId(null); setNotes(j.notes || ""); setSources(j.sources || []); setCorrections(j.corrections || []);
-      toast(`Brouillon généré par ${j.modele}. Validez-le avant tout import.`); setOnglet("campagnes");
+      const p = normaliserPlan(j.plan); p.options = { ...p.options, siteOfficiel: site, client: plan.options.client || p.options.client, demande: plan.options.demande || p.options.demande };
+      setNotes(j.notes || ""); setSources(j.sources || []); setCorrections(j.corrections || []);
+      toast(`Brouillon généré par ${j.modele}. Validez-le avant tout import.`);
+      if (!(j.corrections || []).length) ouvrirPlan(p, null, "campagnes"); else { ouvrirPlan(p, null, "campagnes"); setTimeout(() => toast(`${j.corrections.length} URL hors du site officiel remplacée(s) par la page d’accueil.`), 100); }
     } catch (e) { setErreur((e as Error).message); }
     setBusy(false);
   };
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader title="Générer un brouillon avec Gemini" subtitle="L’IA lit le site officiel du client (seule source de vérité sur l’annonceur), consulte le web uniquement pour le vocabulaire de recherche, puis propose un plan complet que le moteur valide comme n’importe quel plan saisi à la main." />
-        <CardBody>
-          <Input label="Site officiel du client" required hint={domaine ? `domaine retenu : ${domaine}` : "toutes les URL finales devront être sur ce domaine"} placeholder="https://www.sepaq.com" value={site} onChange={(e) => setSite(e.target.value)} />
+    <div>
+      <p className="mb-4 text-sm text-gray-600">L’IA lit le site officiel du client (seule source de vérité sur l’annonceur), consulte le web uniquement pour le vocabulaire de recherche, puis propose un plan complet que le moteur valide comme n’importe quel plan saisi à la main. Le plan généré remplace le plan courant.</p>
+      <div>
+          <Input label="Site officiel du client" required hint={domaine ? `domaine retenu : ${domaine}` : "toutes les URL finales devront être sur ce domaine"} placeholder="https://www.exemple.com" value={site} onChange={(e) => setSite(e.target.value)} />
           <div className="mt-4">
-            <Textarea label="Mandat" className="min-h-[160px]" placeholder="Ex. : Sépaq, campagne camping automne 2026, Québec, du 15 septembre au 31 octobre, 8 000 $ par mois, objectif réservations, pages camping et prêt-à-camper, ton chaleureux…" value={brief} onChange={(e) => setBrief(e.target.value)} />
+            <Textarea label="Mandat" className="min-h-[160px]" placeholder="Ex. : Client Exemple, campagne automne 2026, Québec, du 15 septembre au 31 octobre, 8 000 $ par mois, objectif réservations en ligne, pages produits et offre de saison, ton chaleureux…" value={brief} onChange={(e) => setBrief(e.target.value)} />
           </div>
           <div className="mt-4 grid gap-4 md:grid-cols-2">
             <Chips label="Langue des textes" options={["fr", "en"]} value={langue} onChange={(v) => setLangue(v as "fr" | "en")} />
@@ -63,8 +62,7 @@ export default function IA() {
               {sources.length > 0 && <ul className="mt-3 list-disc space-y-1 pl-5">{sources.map((s, i) => <li key={i}><a className="text-primary-700 underline" href={s.url} target="_blank" rel="noreferrer">{s.titre || s.url}</a></li>)}</ul>}
             </details>
           )}
-        </CardBody>
-      </Card>
+      </div>
     </div>
   );
 }

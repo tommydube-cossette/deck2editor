@@ -15,7 +15,7 @@ export default function Gate({ children }: { children: React.ReactNode }) {
           <div className="plus-pattern h-1" />
           <div className="p-8 text-center">
             <h1 className="text-lg font-semibold text-gray-900">Deck2Editor</h1>
-            <p className="mt-1 text-sm text-gray-500">Connectez-vous avec votre compte Google Plus Company.</p>
+            <p className="mt-1 text-sm text-gray-500">Connectez-vous avec votre compte Google professionnel.</p>
             <Button variant="primary" pop className="mt-6 w-full" onClick={connecter}>Se connecter avec Google</Button>
           </div>
         </div>

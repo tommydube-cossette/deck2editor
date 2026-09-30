@@ -97,7 +97,7 @@ function ZoneAssets({ i, cle, titre, max, plafond, mini, pins }: { i: number; cl
             const lignes = txt.split(/\r?\n/).map((x) => x.trim()).filter(Boolean); let nb = 0;
             update((p) => { lignes.forEach((x) => { if (p.rsas[i][cle].length < plafond) { p.rsas[i][cle].push({ texte: x, pin: "" }); nb++; } }); });
             setTxt(""); setBulk(false); toast(`${nb} ligne(s) importée(s).`);
-          }}>Importer</Button>
+          }}>Ajouter ces lignes</Button>
         </div>
       )}
     </div>

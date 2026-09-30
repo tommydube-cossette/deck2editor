@@ -271,7 +271,7 @@ const GAE = (function () {
     var assetGrps = deck.assetGroups || [];
 
     // BOM UTF-8 : indispensable pour que Google Ads Editor (Windows, locale FR) lise
-    // les accents correctement. Sans lui, "Sepaq" devenait "SÃ©paq" a l'import.
+    // les accents correctement. Sans lui, "Québec" devenait "QuÃ©bec" a l'import.
     var BOM = '\uFEFF';
     var nomsCampagnes = {}, cleGroupes = {}, typeCampagne = {}, budgetsProvisoires = [], nomsEntreprisePMax = [], typesNonCouverts = [];
 
@@ -1071,7 +1071,7 @@ const GAE = (function () {
 
       // Paires libelle / valeur (entetes de deck)
       if (cel.length >= 2) {
-        // "Titre <tab> 3 <tab> texte" (format Sepaq) ou "Headline 3 <tab> texte" (format ARTM)
+        // "Titre <tab> 3 <tab> texte" ou "Headline 3 <tab> texte" (deux formats de deck rencontres)
         var mT = reTitre.exec(c0);
         if (mT) {
           var estLong = !!(mT[1] || mT[3]);

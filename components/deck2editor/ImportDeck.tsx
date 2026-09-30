@@ -1,7 +1,6 @@
 "use client";
 import { useState } from "react";
 import { usePlan, optionsCampagne, optionsGroupe } from "./PlanContext";
-import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { Select, Textarea } from "@/components/ui/Field";
 import Button from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Toast";
@@ -18,7 +17,7 @@ interface Parse {
 /* Import d'un deck colle (onglet Excel). Reserve aux campagnes Search : un deck
    Performance Max se saisit dans l'onglet Performance Max (Coller en lot). */
 export default function ImportDeck() {
-  const { plan, update, setOnglet } = usePlan();
+  const { plan, update, setOnglet, setPanneau } = usePlan();
   const toast = useToast();
   const [txt, setTxt] = useState(""); const [camp, setCamp] = useState(""); const [grp, setGrp] = useState("");
   const [parse, setParse] = useState<Parse | null>(null);
@@ -41,14 +40,12 @@ export default function ImportDeck() {
       r.snippets.forEach((x) => p.snippets.push({ campagne: camp, entete: x.entete, valeurs: x.valeurs || [] }));
     });
     if (r.titresLongs.length || r.descriptionsCourtes.length) toast("Titres longs ignorés : la campagne de destination n’est pas de type Performance Max.");
-    setOnglet("groupes"); toast(`Deck appliqué au groupe « ${grp} ».`);
+    setOnglet("groupes"); setPanneau(null); toast(`Deck appliqué au groupe « ${grp} ».`);
   };
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader title="Import direct depuis un deck" subtitle="Sélectionnez les cellules dans Excel ou Sheets, copiez, collez ici. L’outil reconnaît Headline / Titre / Titre long / Description / Description courte / Display path / URL finale / Nom de l’entreprise / Incitation à l’action, ainsi que les sections Mots-clés, Mots-clés négatifs, Callout extensions, Sitelinks et Structured snippets. Les colonnes de comptage sont ignorées." />
-        <CardBody>
+    <div>
+      <div>
           <Textarea label="Contenu collé" className="min-h-[200px]" value={txt} onChange={(e) => setTxt(e.target.value)} />
           <div className="mt-4 grid gap-4 md:grid-cols-2">
             <Select label="Campagne de destination" options={optionsCampagne(plan, "std")} value={camp} onChange={(e) => { setCamp(e.target.value); setGrp(""); }} />
@@ -66,8 +63,7 @@ export default function ImportDeck() {
                 {parse.urlFinale && <><br />URL : {parse.urlFinale}</>}{parse.path1 && <><br />Chemins : {parse.path1} / {parse.path2}</>}</p>
             </div>
           )}
-        </CardBody>
-      </Card>
+      </div>
     </div>
   );
 }

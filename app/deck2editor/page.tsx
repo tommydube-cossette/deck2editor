@@ -1,83 +1,109 @@
 "use client";
+import { useState } from "react";
 import AppShell from "@/components/shell/AppShell";
 import Gate from "@/components/shell/Gate";
-import { ToastProvider } from "@/components/ui/Toast";
+import { ToastProvider, useToast } from "@/components/ui/Toast";
+import Button from "@/components/ui/Button";
+import SlideOver from "@/components/ui/SlideOver";
 import { PlanProvider, usePlan, type Onglet } from "@/components/deck2editor/PlanContext";
-import Reglages from "@/components/deck2editor/Reglages";
+import Accueil from "@/components/deck2editor/Accueil";
+import Contexte from "@/components/deck2editor/Contexte";
 import Campagnes from "@/components/deck2editor/Campagnes";
 import Groupes from "@/components/deck2editor/Groupes";
 import MotsCles from "@/components/deck2editor/MotsCles";
 import Extensions from "@/components/deck2editor/Extensions";
 import PMax from "@/components/deck2editor/PMax";
-import ImportDeck from "@/components/deck2editor/ImportDeck";
+import Generation from "@/components/deck2editor/Generation";
+import Importer from "@/components/deck2editor/Importer";
 import IA from "@/components/deck2editor/IA";
-import ImportExport from "@/components/deck2editor/ImportExport";
 import ValidationRail from "@/components/deck2editor/ValidationRail";
-import { Settings, LayoutDashboard, FileText, Tag, Link2, Boxes, ClipboardPaste, Sparkles, ArrowLeftRight } from "lucide-react";
+import { useAuth } from "@/lib/auth";
+import { sauvegarderPlan, titreParDefaut } from "@/lib/deck2editor/firestore";
+import { ArrowLeft, Sparkles, Upload, Save } from "lucide-react";
 
-const ONGLETS: { id: Onglet; label: string; sous: string; Icon: typeof Settings }[] = [
-  { id: "reglages", label: "Réglages", sous: "Contexte du plan, options d’export, plans sauvegardés.", Icon: Settings },
-  { id: "campagnes", label: "Campagnes", sous: "Budget, enchères, diffusion, ciblage, AI Max.", Icon: LayoutDashboard },
-  { id: "groupes", label: "Groupes et annonces", sous: "Une annonce responsive par groupe. 3 à 15 titres, 2 à 4 descriptions.", Icon: FileText },
-  { id: "motscles", label: "Mots-clés", sous: "Positifs et négatifs, au niveau groupe ou campagne.", Icon: Tag },
-  { id: "extensions", label: "Extensions", sous: "Liens annexes, accroches, extraits de site.", Icon: Link2 },
-  { id: "pmax", label: "Performance Max", sous: "Titres, titres longs, descriptions, nom de l’entreprise.", Icon: Boxes },
-  { id: "import", label: "Import deck", sous: "Collez un onglet Excel, l’outil en extrait le contenu.", Icon: ClipboardPaste },
-  { id: "echanges", label: "Excel / Editor / Deck", sous: "Modèle Excel, import Excel, export Google Ads Editor, deck client PDF, HTML, Excel.", Icon: ArrowLeftRight },
-  { id: "ia", label: "IA", sous: "Brouillon complet généré par Gemini, à valider.", Icon: Sparkles },
+/* Sequence unique, numerotee : 1 Contexte > 2 Campagnes > 3 Groupes et annonces > 4 Mots-cles > 5 Extensions > 6 Performance Max > 7 Generation.
+   Les sources (IA, import) sont des panneaux lateraux, pas des etapes. */
+const ETAPES: { id: Onglet; label: string; sous: string }[] = [
+  { id: "contexte", label: "Contexte", sous: "Client, demande, site officiel, options d’export." },
+  { id: "campagnes", label: "Campagnes", sous: "Budget, enchères, diffusion, ciblage, AI Max." },
+  { id: "groupes", label: "Groupes et annonces", sous: "Une annonce responsive par groupe : 3 à 15 titres, 2 à 4 descriptions." },
+  { id: "motscles", label: "Mots-clés", sous: "Positifs et négatifs, au niveau groupe ou campagne." },
+  { id: "extensions", label: "Extensions", sous: "Liens annexes, accroches, extraits de site." },
+  { id: "pmax", label: "Performance Max", sous: "Groupes d’assets : titres, titres longs, descriptions." },
+  { id: "generation", label: "Génération", sous: "Fichiers pour Editor, checklist, deck client." },
 ];
+const BLOC2ONGLET: Record<string, Onglet> = { Campagnes: "campagnes", Localisations: "campagnes", "Groupes d'annonces": "groupes", "Annonces RSA": "groupes", "Mots-cles": "motscles", "Mots-cles negatifs": "motscles", Sitelinks: "extensions", Accroches: "extensions", "Extraits de site": "extensions", "Groupes d'assets": "pmax" };
 
-function Contenu() {
-  const { onglet, setOnglet, plan, resultat } = usePlan();
-  const compte: Record<Onglet, number | ""> = {
-    reglages: "", campagnes: plan.campagnes.length, groupes: plan.groupes.length, motscles: plan.motsCles.length + plan.negatifs.length,
-    extensions: plan.sitelinks.length + plan.callouts.length + plan.snippets.length, pmax: plan.assetGroups.length, import: "", echanges: "", ia: "",
-  };
+function Editeur() {
+  const { plan, onglet, setOnglet, resultat, setVue, panneau, setPanneau, planId, setPlanId } = usePlan();
+  const { user, configure } = useAuth();
+  const toast = useToast();
+  const [busy, setBusy] = useState(false);
+  const compte: Record<Onglet, number | ""> = { contexte: "", campagnes: plan.campagnes.length, groupes: plan.groupes.length, motscles: plan.motsCles.length + plan.negatifs.length, extensions: plan.sitelinks.length + plan.callouts.length + plan.snippets.length, pmax: plan.assetGroups.length, generation: resultat ? resultat.fichiers.length : "" };
   const erreurs: Partial<Record<Onglet, number>> = {};
-  resultat?.rapport.erreurs.forEach((e) => {
-    const map: Record<string, Onglet> = { Campagnes: "campagnes", Localisations: "campagnes", "Groupes d'annonces": "groupes", "Annonces RSA": "groupes", "Mots-cles": "motscles", "Mots-cles negatifs": "motscles", Sitelinks: "extensions", Accroches: "extensions", "Extraits de site": "extensions", "Groupes d'assets": "pmax" };
-    const o = map[e.bloc]; if (o) erreurs[o] = (erreurs[o] || 0) + 1;
-  });
-  const cur = ONGLETS.find((o) => o.id === onglet)!;
+  resultat?.rapport.erreurs.forEach((e) => { const o = BLOC2ONGLET[e.bloc]; if (o) erreurs[o] = (erreurs[o] || 0) + 1; });
+  const idx = ETAPES.findIndex((e) => e.id === onglet); const cur = ETAPES[idx];
+  const sauvegarder = async () => {
+    if (!user) return toast("Connexion requise pour sauvegarder.");
+    setBusy(true);
+    try { const id = await sauvegarderPlan(planId, { clientId: "", clientNom: plan.options.client || "", demande: plan.options.demande || "", titre: titreParDefaut(plan), ownerUid: user.uid, ownerEmail: user.email || "", statut: resultat?.rapport.pret ? "valide" : "brouillon", plan }); setPlanId(id); toast("Plan sauvegardé."); }
+    catch (e) { toast("Sauvegarde impossible : " + (e as Error).message); }
+    setBusy(false);
+  };
+
   return (
-    <div className="flex gap-0 -mx-4 -my-6 sm:-mx-6 lg:-mx-8 xl:-mx-12 2xl:-mx-16">
+    <div className="-mx-4 -my-6 flex sm:-mx-6 lg:-mx-8 xl:-mx-12 2xl:-mx-16">
       <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-3 border-b border-gray-200 bg-white px-6 py-3">
+          <button type="button" onClick={() => setVue("accueil")} className="flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-900"><ArrowLeft className="h-4 w-4" />Accueil</button>
+          <div className="mx-1 h-5 w-px bg-gray-200" />
+          <div className="min-w-0 flex-1 truncate text-sm font-medium text-gray-900">{titreParDefaut(plan)}{planId ? "" : <span className="ml-2 text-xs font-normal text-gray-500">(non sauvegardé)</span>}</div>
+          <Button size="sm" onClick={() => setPanneau("importer")}><Upload />Importer</Button>
+          <Button size="sm" onClick={() => setPanneau("ia")}><Sparkles />Brouillon IA</Button>
+          <Button size="sm" variant="primary" disabled={!configure || !user || busy} onClick={sauvegarder} title={configure ? "" : "Firebase non configuré"}><Save />Sauvegarder</Button>
+        </div>
         <div className="border-b border-gray-200 bg-white px-6">
-          <div className="flex flex-wrap gap-6">
-            {ONGLETS.map(({ id, label, Icon }) => (
-              <button key={id} type="button" onClick={() => setOnglet(id)} className={`relative -mb-px flex items-center gap-2 border-b-2 py-3 text-sm font-medium transition-colors ${onglet === id ? "border-primary text-gray-900" : "border-transparent text-gray-500 hover:text-gray-800"}`}>
-                <Icon className="h-4 w-4" />{label}
-                {erreurs[id] ? <span className="rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white">{erreurs[id]}</span> : compte[id] ? <span className="rounded-full bg-gray-100 px-1.5 text-[10px] font-bold text-gray-600">{compte[id]}</span> : null}
+          <div className="flex flex-wrap gap-5">
+            {ETAPES.map((e, i) => (
+              <button key={e.id} type="button" onClick={() => setOnglet(e.id)} className={`relative -mb-px flex items-center gap-2 border-b-2 py-3 text-sm font-medium transition-colors ${onglet === e.id ? "border-primary text-gray-900" : "border-transparent text-gray-500 hover:text-gray-800"}`}>
+                <span className={`flex h-5 w-5 items-center justify-center rounded-full font-mono text-[11px] font-bold ${onglet === e.id ? "bg-primary text-white" : "bg-gray-100 text-gray-500"}`}>{i + 1}</span>{e.label}
+                {erreurs[e.id] ? <span className="rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white">{erreurs[e.id]}</span> : compte[e.id] ? <span className="rounded-full bg-gray-100 px-1.5 text-[10px] font-bold text-gray-600">{compte[e.id]}</span> : null}
               </button>
             ))}
           </div>
         </div>
         <div className="px-6 py-6">
-          <div className="mb-5"><h1 className="text-xl font-semibold tracking-tight text-gray-900">{cur.label}</h1><p className="mt-0.5 text-sm text-gray-500">{cur.sous}</p></div>
-          {onglet === "reglages" && <Reglages />}
+          <div className="mb-5 flex items-end justify-between gap-4">
+            <div><h1 className="text-xl font-semibold tracking-tight text-gray-900">{idx + 1}. {cur.label}</h1><p className="mt-0.5 text-sm text-gray-500">{cur.sous}</p></div>
+            <div className="flex shrink-0 gap-2">
+              {idx > 0 && <Button size="sm" onClick={() => setOnglet(ETAPES[idx - 1].id)}>Précédent</Button>}
+              {idx < ETAPES.length - 1 && <Button size="sm" variant="primary" onClick={() => setOnglet(ETAPES[idx + 1].id)}>Suivant</Button>}
+            </div>
+          </div>
+          {onglet === "contexte" && <Contexte />}
           {onglet === "campagnes" && <Campagnes />}
           {onglet === "groupes" && <Groupes />}
           {onglet === "motscles" && <MotsCles />}
           {onglet === "extensions" && <Extensions />}
           {onglet === "pmax" && <PMax />}
-          {onglet === "import" && <ImportDeck />}
-          {onglet === "echanges" && <ImportExport />}
-          {onglet === "ia" && <IA />}
+          {onglet === "generation" && <Generation />}
         </div>
       </div>
       <ValidationRail />
+      <SlideOver open={panneau === "importer"} onClose={() => setPanneau(null)} title="Importer un plan"><Importer /></SlideOver>
+      <SlideOver open={panneau === "ia"} onClose={() => setPanneau(null)} title="Brouillon avec Gemini"><IA /></SlideOver>
     </div>
   );
 }
+
+function Contenu() { const { vue } = usePlan(); return vue === "accueil" ? <Accueil /> : <Editeur />; }
 
 export default function Page() {
   return (
     <ToastProvider>
       <Gate>
         <PlanProvider>
-          <AppShell title="Deck2Editor · Deck vers Google Ads Editor">
-            <Contenu />
-          </AppShell>
+          <AppShell title="Deck2Editor · Deck vers Google Ads Editor"><Contenu /></AppShell>
         </PlanProvider>
       </Gate>
     </ToastProvider>

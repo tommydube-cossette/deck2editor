@@ -78,7 +78,7 @@ function Zone({ i, cle, titre, max, plafond, mini }: { i: number; cle: "titres" 
             const l = txt.split(/\r?\n/).map((x) => x.trim()).filter(Boolean); let nb = 0;
             update((p) => l.forEach((x) => { if (p.assetGroups[i][cle].length < plafond) { p.assetGroups[i][cle].push(x); nb++; } }));
             setTxt(""); setBulk(false); toast(`${nb} ligne(s) importée(s).`);
-          }}>Importer</Button>
+          }}>Ajouter ces lignes</Button>
         </div>
       )}
     </div>

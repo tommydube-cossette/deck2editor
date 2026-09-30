@@ -76,3 +76,12 @@ describe("Import d'un export Google Ads Editor", () => {
     expect(res!.cpt.campagnes).toBe(1);
   });
 });
+
+describe("Exemples Firestore", () => {
+  it("les 3 plans d'exemple sont valides par le moteur", async () => {
+    const { exemples } = await import("@/lib/deck2editor/exemples");
+    const ex = exemples();
+    expect(ex.length).toBe(3);
+    ex.forEach((e) => { const r = GAE.generer({ ...e.plan, options: { ...e.plan.options, aujourdhui: "2026-09-30" } }); expect(r.rapport.erreurs, e.titre).toEqual([]); });
+  });
+});

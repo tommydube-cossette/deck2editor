@@ -1,9 +1,7 @@
 "use client";
-import { useState } from "react";
 import { usePlan, type Onglet } from "./PlanContext";
 import Button from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Toast";
-import { telechargerFichier, telechargerZip, copierTSV } from "@/lib/deck2editor/download";
 import type { Message } from "@/lib/deck2editor/types";
 
 const BLOC2ONGLET: Record<string, Onglet> = {
@@ -16,11 +14,10 @@ const LIBELLES: [string, string][] = [["campagnes", "Campagnes"], ["localisation
 export default function ValidationRail() {
   const { resultat, generer, setOnglet } = usePlan();
   const toast = useToast();
-  const [busy, setBusy] = useState(false);
   const r = resultat;
 
   const Msg = ({ m, type }: { m: Message; type: "e" | "w" }) => (
-    <button type="button" onClick={() => setOnglet(BLOC2ONGLET[m.bloc] || "reglages")}
+    <button type="button" onClick={() => setOnglet(BLOC2ONGLET[m.bloc] || "contexte")}
       className={`mb-2 w-full rounded-control border px-3 py-2 text-left text-xs leading-snug ${type === "e" ? "border-red-200 bg-red-50" : "border-amber-200 bg-amber-50"}`}>
       <span className={`block text-[10px] font-bold uppercase tracking-wide ${type === "e" ? "text-red-600" : "text-amber-700"}`}>{type === "e" ? "Erreur" : "Avertissement"} · {m.bloc}</span>
       {m.ref && <span className="block font-semibold text-gray-900">{m.ref}</span>}
@@ -57,18 +54,7 @@ export default function ValidationRail() {
             </>
           )}
 
-          <h3 className="mt-5 text-[11px] font-semibold uppercase tracking-wide text-gray-600">Fichiers</h3>
-          <div className="mt-2 space-y-1.5">
-            {r.fichiers.map((f, i) => (
-              <div key={i} className="flex items-center gap-2 rounded-control border border-gray-200 bg-white px-2.5 py-1.5">
-                <span className="min-w-0 flex-1 truncate font-mono text-xs font-medium">{f.nom}</span>
-                {f.nbLignes > 0 && <span className="font-mono text-[11px] text-gray-500">{f.nbLignes}</span>}
-                <Button size="sm" onClick={() => telechargerFichier(f)}>CSV</Button>
-                {f.tsv && <Button size="sm" onClick={async () => toast((await copierTSV(f)) ? `${f.nom} copié. Editor > Account > Import > Paste text.` : "Copie impossible.")}>Copier</Button>}
-              </div>
-            ))}
-          </div>
-          <Button className="mt-3 w-full" disabled={busy} onClick={async () => { setBusy(true); await telechargerZip(r.fichiers); setBusy(false); toast("ZIP téléchargé : décompressez, puis importez 00 dans Editor (Account > Import > From file)."); }}>Tout télécharger (ZIP)</Button>
+          <Button className="mt-5 w-full" onClick={() => setOnglet("generation")}>Voir les fichiers et le deck client</Button>
         </>
       )}
     </aside>

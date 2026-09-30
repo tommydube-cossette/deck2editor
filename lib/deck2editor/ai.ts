@@ -4,7 +4,7 @@ import type { Plan } from "./types";
 
 export interface ParamsIA { brief: string; siteOfficiel: string; langue: "fr" | "en"; rechercheWeb: boolean; }
 
-/* "sepaq.com", "https://www.sepaq.com/camping/" -> "sepaq.com" ; null si invalide. */
+/* "exemple.com", "https://www.exemple.com/offre/" -> "exemple.com" ; null si invalide. */
 export function domaineDe(entree: string): string | null {
   const t = (entree || "").trim();
   if (!t) return null;
@@ -36,7 +36,7 @@ export function corrigerUrls(plan: Plan, site: string): string[] {
 
 export function promptRecherche(p: ParamsIA): string {
   const site = urlSite(p.siteOfficiel), dom = domaineDe(p.siteOfficiel);
-  return `Tu es un specialiste SEM senior chez Cossette Media (Quebec). Tu prepares des notes de travail pour un plan Google Ads Search.
+  return `Tu es un specialiste SEM experimente, base au Quebec. Tu prepares des notes de travail pour un plan Google Ads Search.
 
 SOURCE DE VERITE : le site officiel de l'annonceur, ${site} (domaine ${dom}). Lis-le avec l'outil de contexte d'URL.
 - Tout fait sur l'annonceur (offres, produits, prix, dates, promotions, services, territoires, pages) vient UNIQUEMENT de ${dom}.

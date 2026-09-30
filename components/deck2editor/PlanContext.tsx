@@ -5,7 +5,9 @@ import { planVide, campagneVide } from "@/lib/deck2editor/plan";
 import { references } from "@/lib/deck2editor/references";
 import GAE from "@/lib/deck2editor/gae";
 
-export type Onglet = "reglages" | "campagnes" | "groupes" | "motscles" | "extensions" | "pmax" | "import" | "echanges" | "ia";
+export type Onglet = "contexte" | "campagnes" | "groupes" | "motscles" | "extensions" | "pmax" | "generation";
+export type Vue = "accueil" | "editeur";
+export type Panneau = null | "ia" | "importer";
 
 interface State {
   plan: Plan;
@@ -16,15 +18,23 @@ interface State {
   generer: () => Resultat;
   onglet: Onglet;
   setOnglet: (o: Onglet) => void;
+  vue: Vue;
+  setVue: (v: Vue) => void;
+  panneau: Panneau;
+  setPanneau: (p: Panneau) => void;
   planId: string | null;
   setPlanId: (id: string | null) => void;
+  /* Ouvre l'editeur sur un plan donne (ou vide) */
+  ouvrirPlan: (p: Plan, id: string | null, onglet?: Onglet) => void;
 }
 const Ctx = createContext<State | null>(null);
 
 export function PlanProvider({ children }: { children: ReactNode }) {
   const [plan, setPlanState] = useState<Plan>(() => { const p = planVide(); p.campagnes.push(campagneVide()); return p; });
   const [resultat, setResultat] = useState<Resultat | null>(null);
-  const [onglet, setOnglet] = useState<Onglet>("reglages");
+  const [onglet, setOnglet] = useState<Onglet>("contexte");
+  const [vue, setVue] = useState<Vue>("accueil");
+  const [panneau, setPanneau] = useState<Panneau>(null);
   const [planId, setPlanId] = useState<string | null>(null);
   const ref = useMemo(() => references(), []);
 
@@ -40,7 +50,9 @@ export function PlanProvider({ children }: { children: ReactNode }) {
     return r;
   }, [plan]);
 
-  return <Ctx.Provider value={{ plan, setPlan, update, ref, resultat, generer, onglet, setOnglet, planId, setPlanId }}>{children}</Ctx.Provider>;
+  const ouvrirPlan = useCallback((p: Plan, id: string | null, o: Onglet = "campagnes") => { setPlanState(p); setResultat(null); setPlanId(id); setOnglet(o); setPanneau(null); setVue("editeur"); }, []);
+
+  return <Ctx.Provider value={{ plan, setPlan, update, ref, resultat, generer, onglet, setOnglet, vue, setVue, panneau, setPanneau, planId, setPlanId, ouvrirPlan }}>{children}</Ctx.Provider>;
 }
 export function usePlan() {
   const c = useContext(Ctx);
